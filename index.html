@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medication Management App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Add and Remove Medication Demo</h1>
+
+        <!-- Medication input form -->
+        <form id="medicationForm">
+            <input type="text" id="medicationName" placeholder="Medication Name">
+            <input type="text" id="medicationDosage" placeholder="Dosage">
+            <button type="submit">Add Medication</button>
+        </form>
+
+        <ul class="medication-list" id="medicationList">
+            <!-- Medication items will be added here dynamically -->
+        </ul>
+    </div>
+
+    <script>
+        // JavaScript code for adding and removing medications
+        const medicationForm = document.getElementById("medicationForm");
+        const medicationNameInput = document.getElementById("medicationName");
+        const medicationDosageInput = document.getElementById("medicationDosage");
+        const medicationList = document.getElementById("medicationList");
+
+        // Function to render medication list
+        function renderMedicationList() {
+            medicationList.innerHTML = "";
+            medicationData.forEach((medication) => {
+                const medicationItem = document.createElement("li");
+                medicationItem.className = "medication-item";
+                medicationItem.innerHTML = `
+                    <span>${medication.name} (${medication.dosage})</span>
+                    <div class="medication-actions">
+                        <button class="removeBtn" data-id="${medication.id}">Remove</button>
+                    </div>
+                `;
+                medicationList.appendChild(medicationItem);
+
+                // Add event listener to the remove button
+                const removeBtn = medicationItem.querySelector(".removeBtn");
+                removeBtn.addEventListener("click", () => {
+                    const medicationId = parseInt(removeBtn.getAttribute("data-id"));
+                    handleRemoveClick(medicationId);
+                });
+            });
+        }
+
+        // Function to add medication
+        function addMedication(newMedication) {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    const id = medicationData.length + 1;
+                    newMedication.id = id;
+                    medicationData.push(newMedication);
+                    resolve(newMedication);
+                }, 1000);
+            });
+        }
+
+        // Function to remove medication
+        function removeMedication(medicationId) {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    const index = medicationData.findIndex((medication) => medication.id === medicationId);
+                    if (index !== -1) {
+                        const removedMedication = medicationData.splice(index, 1)[0];
+                        resolve(removedMedication);
+                    } else {
+                        reject("Error: Medication not found");
+                    }
+                }, 1000);
+            });
+        }
+
+        // Function to handle remove button click
+        function handleRemoveClick(medicationId) {
+            removeMedication(medicationId)
+                .then(() => {
+                    console.log("Medication removed successfully");
+                    renderMedicationList();
+                })
+                .catch((error) => {
+                    console.error("Error removing medication:", error);
+                });
+        }
+
+        // Add event listener for submitting the medication form
+        medicationForm.addEventListener("submit", (e) => {
+            e.preventDefault(); // Prevent the form from submitting as usual
+            const newMedicationName = medicationNameInput.value.trim();
+            const newMedicationDosage = medicationDosageInput.value.trim();
+            if (newMedicationName && (newMedicationDosage)) {
+                const newMedication = { name: newMedicationName, dosage: newMedicationDosage };
+                addMedication(newMedication)
+                    .then(() => {
+                        console.log("Medication added successfully");
+                        updateAndSaveMedicationData();
+                        // Clear the input fields after adding
+                        medicationNameInput.value = "";
+                        medicationDosageInput.value = "";
+                    })
+                    .catch((error) => {
+                        console.error("Error adding medication:", error);
+                    });
+            } 
+        });
+
+        // Function to save medication data to local storage
+        function saveMedicationData() {
+            localStorage.setItem("medicationData", JSON.stringify(medicationData));
+        }
+
+        // Function to load medication data from local storage
+        function loadMedicationData() {
+            const savedData = localStorage.getItem("medicationData");
+            if (savedData) {
+                medicationData = JSON.parse(savedData);
+            }
+        }
+
+        // Update the medication list and save data whenever medications are added or removed
+        function updateAndSaveMedicationData() {
+            renderMedicationList();
+            saveMedicationData();
+        }
+
+        // Simulated medication data
+        let medicationData = [
+            { id: 1, name: "Aspirin", dosage: "500" },
+            { id: 2, name: "Ibuprofen", dosage: "200" },
+            { id: 3, name: "Lipitor", dosage: "10" },
+        ];
+
+        // Call loadMedicationData on page load to retrieve saved data
+        loadMedicationData();
+
+        // Initial rendering of the medication list
+        renderMedicationList();
+    </script>
+</body>
+</html>
+
